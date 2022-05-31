@@ -243,17 +243,17 @@ public class Binance extends ERC721 implements Blockchain {
 								session.outputImageType);
 						GeneratorController.produceMetaInfoFile(metaData,
 								outputDirPath + "/metadata/" + NFTName + ".json");
-					} catch (Exception err) {
-						throw new RuntimeException(err);
+					} catch (Exception e) {
+						throw new RuntimeException(e.getMessage());
 					}
 				});
 
 			} else {
-				throw new Exception("No NFTs to be created");
+				return Errors.NoNFTLayersWereFound;
 			}
 			return Errors.NoErrorDetected;
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (e.getMessage().endsWith(Errors.CustomError.toString())) return Errors.CustomError;
 			return Errors.GenericError;
 		}
 	}
