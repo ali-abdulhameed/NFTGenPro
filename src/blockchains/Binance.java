@@ -130,10 +130,8 @@ public class Binance extends ERC721 implements Blockchain {
 			Map<String, Object> tm = new HashMap<>();
 			String traitType = t.<JTextField>getComponent("traitType").getText();
 			String displayType = (String) t.<JComboBox>getComponent("displayType").getSelectedItem();
-
 			JRadioButton all = t.<JRadioButton>getComponent("all");
 			JRadioButton randomized = t.<JRadioButton>getComponent("randomized");
-
 			String min = t.<JTextField>getComponent("min").getText();
 			String max = t.<JTextField>getComponent("max").getText();
 

@@ -5,7 +5,6 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,7 +31,6 @@ import utils.Errors;
 import static utils.FileManagement.listAllFiles;
 import static utils.FileManagement.isDigit;
 import utils.ViewSection;
-import views.UpdaterView;
 
 public class Solana implements Blockchain {
 	private static Solana instance;
@@ -42,7 +40,7 @@ public class Solana implements Blockchain {
 	static {
 		instance = new Solana();
 	}
-	
+
 	private Solana() {
 		blockchainName = "Solana";
 	}
@@ -168,11 +166,6 @@ public class Solana implements Blockchain {
 				creatorsList.add(new Object[] { address, Integer.parseInt(share) });
 			}
 		});
-		
-
-	
-		
-
 		n = n.contentEquals("Collection Name") ? null : n;
 		s = s.contentEquals("Symbol") ? null : s;
 		d = d.contentEquals("Description") ? null : d;
@@ -181,40 +174,32 @@ public class Solana implements Blockchain {
 		md.put("name", n);
 		md.put("symbol", s);
 		md.put("description", d);
-		
 
-		
 		if (sp != null && isDigit(sp)) {
 			int spValue = Integer.parseInt(sp);
 			if (spValue < 0 || spValue > 10000) {
 				Errors.setGeneratorCustomError("\"Seller Fee Basis Points\" have to be between 0 and 10000");
-			} else {	
+			} else {
 				md.put("sellerFeeBasis", spValue);
 			}
-		} 
-		
-		
+		}
 		boolean creatorsToggler = creators.<JCheckBox>getComponent("creatorsToggler").isSelected();
 		int totalShares = shares.get();
-		if(list.size() == 0 || !creatorsToggler) {
-			if(md.get("sellerFeeBasis") != null) {
+		if (list.size() == 0 || !creatorsToggler) {
+			if (md.get("sellerFeeBasis") != null) {
 				Errors.setGeneratorCustomError("Error: You need to add at least one creator");
 			}
 			md.put("creators", null);
-		}  else {
-			 if (totalShares != 100) {
+		} else {
+			if (totalShares != 100) {
 				Errors.setGeneratorCustomError("Error: creators shares need to add up to 100");
 				creatorsList.clear();
-			} 
-			 md.put("creators", creatorsList);
-			
+			}
+			md.put("creators", creatorsList);
 		}
-		
-		
-		if(md.get("creators") != null && md.get("sellerFeeBasis") == null) {
+		if (md.get("creators") != null && md.get("sellerFeeBasis") == null) {
 			Errors.setGeneratorCustomError("Error: You need to add \"Seller Fee Basis Points\"");
 		}
-		
 		md.put("externalURL", e);
 		md.put("includeName", includeName);
 		return md;
@@ -247,14 +232,16 @@ public class Solana implements Blockchain {
 			if (combinations.size() > 0) {
 				Map<String, Object> md = getGeneratorMetaData();
 				final List<Object[]> creators = (List) md.get("creators");
-				if(creators != null && creators.size() == 0) return Errors.CustomError;
+				if (creators != null && creators.size() == 0)
+					return Errors.CustomError;
 				boolean includeName = (boolean) md.get("includeName");
 				final String name = (String) md.get("name");
 				final String symbol = (String) md.get("symbol");
 				final Integer sellerFeeBasis = (Integer) md.get("sellerFeeBasis");
-				if(sellerFeeBasis == null && creators != null) return Errors.CustomError;
-				if(sellerFeeBasis != null && creators == null) return Errors.CustomError;
-					
+				if (sellerFeeBasis == null && creators != null)
+					return Errors.CustomError;
+				if (sellerFeeBasis != null && creators == null)
+					return Errors.CustomError;
 				final String desc = (String) md.get("description");
 				final String externalURL = (String) md.get("externalURL");
 				final String collectionName = (String) md.get("c-name");
@@ -287,7 +274,8 @@ public class Solana implements Blockchain {
 								tempMap.put(k, v);
 								return --v;
 							});
-							if (valid == null) break;
+							if (valid == null)
+								break;
 							JSONObject attr = new JSONObject();
 							String[] imgParams = img.getName().split("#");
 							String imgName = imgParams[imgParams.length == 2 ? 1 : 0];
@@ -312,7 +300,7 @@ public class Solana implements Blockchain {
 						propFile.put("type", "image/" + session.outputImageType);
 						propAttr.append("files", propFile);
 						propAttr.put("category", "image");
-						if(creators != null) {
+						if (creators != null) {
 							creators.forEach(c -> {
 								JSONObject creator = new JSONObject();
 								creator.put("address", (String) c[0]);
@@ -329,13 +317,13 @@ public class Solana implements Blockchain {
 						throw new RuntimeException(e.getMessage());
 					}
 				});
-
 			} else {
 				return Errors.NoNFTLayersWereFound;
 			}
 			return Errors.NoErrorDetected;
 		} catch (Exception e) {
-			if(e.getMessage().endsWith(Errors.CustomError.toString())) return Errors.CustomError;
+			if (e.getMessage().endsWith(Errors.CustomError.toString()))
+				return Errors.CustomError;
 			return Errors.GenericError;
 		}
 	}
@@ -358,72 +346,65 @@ public class Solana implements Blockchain {
 		} else {
 			sp = null;
 		}
-		
+
 		String externalURL = updaterMetaFields.<JTextField>getComponent("externalURL").getText();
 		session.createProgressDialog();
 		try {
-		Arrays.asList(listAllFiles(session.folderDir, "json")).parallelStream().forEach(file -> {
-			if (session.canceled)
-				return;
-			try {
-				
-				String fileContent = Files.readString(Path.of(file.getAbsolutePath()), StandardCharsets.UTF_8);
-				JSONObject j = new JSONObject(fileContent);
-				JSONObject output = new JSONObject();
-				output.put("name", j.get("name"));				
-			    output.put("symbol", !symbol.contentEquals("Symbol") ? symbol: j.get("symbol"));
-				if (!desc.contentEquals("Description")) {
-					output.put("description", desc);
-				} else if(j.has("description")) {
-					output.put("description", j.get("description"));
-				}
-			    
-					
-				if (sp != null) {
-					if(!j.getJSONObject("properties").has("creators")) {
-						Errors.setUpdaterCustomError("Error: cannot add Seller Fee Basis Points"
-								+ " because there are no creators");
-						throw new Exception(Errors.CustomError.toString());
-					} else {
-					output.put("seller_fee_basis_points", sp);
+			Arrays.asList(listAllFiles(session.folderDir, "json")).parallelStream().forEach(file -> {
+				if (session.canceled)
+					return;
+				try {
+					String fileContent = Files.readString(Path.of(file.getAbsolutePath()), StandardCharsets.UTF_8);
+					JSONObject j = new JSONObject(fileContent);
+					JSONObject output = new JSONObject();
+					output.put("name", j.get("name"));
+					output.put("symbol", !symbol.contentEquals("Symbol") ? symbol : j.get("symbol"));
+					if (!desc.contentEquals("Description")) {
+						output.put("description", desc);
+					} else if (j.has("description")) {
+						output.put("description", j.get("description"));
 					}
-				} else {
-					output.put("seller_fee_basis_points", 0);
-				}
-					
-				if (!imageBaseURL.contentEquals("Image base url: without / at the end")) {
-					String image = j.getString("image");
-					int i = image.lastIndexOf('/');
-					image = imageBaseURL + "/" + image.substring(i == -1 ? 0 : ++i);
-					output.put("image", image);
-				} else {
-					output.put("image", j.get("image"));
-				}
-				
+					if (sp != null) {
+						if (!j.getJSONObject("properties").has("creators")) {
+							Errors.setUpdaterCustomError(
+									"Error: cannot add Seller Fee Basis Points" + " because there are no creators");
+							throw new Exception(Errors.CustomError.toString());
+						} else {
+							output.put("seller_fee_basis_points", sp);
+						}
+					} else {
+						output.put("seller_fee_basis_points", 0);
+					}
+					if (!imageBaseURL.contentEquals("Image base url: without / at the end")) {
+						String image = j.getString("image");
+						int i = image.lastIndexOf('/');
+						image = imageBaseURL + "/" + image.substring(i == -1 ? 0 : ++i);
+						output.put("image", image);
+					} else {
+						output.put("image", j.get("image"));
+					}
+					if (!externalURL.contentEquals("External url")) {
+						output.put("external_url", externalURL);
+					} else if (j.has("external_url")) {
+						output.put("external_url", j.get("external_url"));
+					}
+					output.put("attributes", j.get("attributes"));
+					if (j.has("collection")) {
+						output.put("collection", j.get("collection"));
+					}
+					j.getJSONObject("properties").getJSONArray("files").getJSONObject(0).put("uri",
+							output.get("image"));
+					output.put("properties", j.get("properties"));
 
-				if (!externalURL.contentEquals("External url")) {
-					output.put("external_url", externalURL);
-				} else if(j.has("external_url")) {
-					output.put("external_url", j.get("external_url"));
+					UpdaterController.updateMetaDataFile(output, session.folderDir + "/" + file.getName());
+				} catch (Exception e) {
+					throw new RuntimeException(e.getMessage());
 				}
-				
-				output.put("attributes", j.get("attributes"));
-				if(j.has("collection")) {
-					output.put("collection", j.get("collection"));
-				}
-				
-		
-				j.getJSONObject("properties").getJSONArray("files").getJSONObject(0).put("uri", output.get("image"));
-				output.put("properties", j.get("properties"));
-				
-				UpdaterController.updateMetaDataFile(output, session.folderDir + "/" + file.getName());
-			} catch (Exception e) {
-				throw new RuntimeException(e.getMessage());
-			}
-			session.counter.getAndIncrement();
-		});
-		} catch(RuntimeException e) {
-			if(e.getMessage().endsWith(Errors.CustomError.toString())) return Errors.CustomError;
+				session.counter.getAndIncrement();
+			});
+		} catch (RuntimeException e) {
+			if (e.getMessage().endsWith(Errors.CustomError.toString()))
+				return Errors.CustomError;
 			return Errors.GenericError;
 		}
 		return Errors.NoErrorDetected;

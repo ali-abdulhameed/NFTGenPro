@@ -7,7 +7,6 @@ import main.java.org.json.JSONObject;
 import blockchains.Blockchain;
 import utils.Errors;
 import utils.FileManagement;
-import views.GeneratorView;
 import views.UpdaterView;
 
 public class UpdaterController {
