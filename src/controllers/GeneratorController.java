@@ -29,16 +29,16 @@ public class GeneratorController {
 	private GeneratorController() {}
 	
 	public static Errors generateNFTs() {
-		GeneratorView ui = GeneratorView.getInstance();
-		String projectDir = ui.getProjectDir();
+		GeneratorView generatorView = GeneratorView.getInstance();
+		String projectDir = generatorView.getProjectDir();
 		if(projectDir == null) return Errors.DirectoryNotSelected;
 		if(projectDir.contentEquals(Errors.InvalidDirectory.toString())) return Errors.InvalidDirectory;
-		Blockchain b = MainController.getBlockchains().get(ui.getSelectedBlockchain());
+		Blockchain b = MainController.getBlockchains().get(generatorView.getSelectedBlockchain());
 		if(b == null) return Errors.BlockchainNotSelected;
-		String outputImgType = ui.getSelectedOutputImageType();
+		String outputImgType = generatorView.getSelectedOutputImageType();
 		if(outputImgType == null) return Errors.OutputImageTypeNotSelected;
 		GeneratorSession session = GeneratorController.generateCombinations(
-				ui.rarityEnabled(),
+				generatorView.rarityEnabled(),
 				projectDir,
 				b.getName(),
 				outputImgType);

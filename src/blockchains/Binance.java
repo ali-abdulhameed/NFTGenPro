@@ -6,6 +6,7 @@ import java.awt.FlowLayout;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.security.SecureRandom;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -125,7 +126,8 @@ public class Binance extends ERC721 implements Blockchain {
 		ViewSection numericalTraits = generatorMetaFields.<ViewSection>getComponent("numericalTraits");
 		ViewSection traitsList = numericalTraits.<ViewSection>getComponent("traitsList");
 		List<Map<String, Object>> traits = new LinkedList<>();
-		traitsList.getComponents().values().forEach(trait -> {
+		Collection<Component> tList = traitsList.getComponents().values();
+		tList.forEach(trait -> {
 			ViewSection t = (ViewSection) trait;
 			Map<String, Object> tm = new HashMap<>();
 			String traitType = t.<JTextField>getComponent("traitType").getText();
@@ -151,7 +153,8 @@ public class Binance extends ERC721 implements Blockchain {
 			tm.put("displayType", displayType);
 			traits.add(tm);
 		});
-
+		
+		System.out.println(traits.size());
 		n = n.contentEquals("Collection Name") ? null : n;
 		d = d.contentEquals("Description") ? null : d;
 		e = e.contentEquals("External url") ? null : e;
@@ -159,7 +162,7 @@ public class Binance extends ERC721 implements Blockchain {
 		md.put("description", d);
 		md.put("externalURL", e);
 		md.put("includeName", includeName);
-		md.put("numericalTraits", traits);
+		md.put("numericalTraits", tList.size() == 0 ? null: traits);
 		return md;
 	}
 
@@ -174,6 +177,10 @@ public class Binance extends ERC721 implements Blockchain {
 				final String desc = (String) md.get("description");
 				final String externalURL = (String) md.get("externalURL");
 				final List<Map<String, Object>> numericalTraits = (List) md.get("numericalTraits");
+				if(numericalTraits.size() == 0) {
+					Errors.setGeneratorCustomError("Error: Invalid numerical value");
+					throw new RuntimeException(Errors.CustomError.toString());
+				}
 				final String outputDirPath = session.createOutputDirectory();
 				SecureRandom rand = new SecureRandom();
 				session.createProgressDialog();
@@ -213,7 +220,7 @@ public class Binance extends ERC721 implements Blockchain {
 							session.occurences.putAll(tempMap);
 							return;
 						}
-						if (numericalTraits.size() > 0) {
+						if (numericalTraits != null) {
 							numericalTraits.forEach(trait -> {
 								JSONObject attr2 = new JSONObject();
 								String displayType = (String) trait.get("displayType");
@@ -252,7 +259,7 @@ public class Binance extends ERC721 implements Blockchain {
 				return Errors.NoNFTLayersWereFound;
 			}
 			return Errors.NoErrorDetected;
-		} catch (Exception e) {
+		} catch (RuntimeException e) {
 			if (e.getMessage().endsWith(Errors.CustomError.toString())) return Errors.CustomError;
 			return Errors.GenericError;
 		}
